@@ -2,230 +2,247 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honors Master Solver</title>
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3771/3771278.png">
-
+    <title>Honors Master Solver - Simplify Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/algebrite@1.4.0/dist/algebrite.bundle-for-browser.min.js"></script>
-    
     <style>
         :root { 
             --solve: #10b981; --base: #3b82f6; --permi: #a855f7; 
-            --bg-a: #0f172a; --bg-b: #1e1b4b;
-            --brightness: 1; --panel-bg: rgba(15, 23, 42, 0.9);
-            --glow-strength: 0px 0px 0px transparent;
+            --find-l: #f59e0b; --bg-a: #0f172a; --bg-b: #1e1b4b;
+            --brightness: 1; --panel-bg: rgba(15, 23, 42, 0.85);
         }
         body { 
-            font-family: 'Inter', system-ui, sans-serif; 
+            font-family: 'Inter', sans-serif; 
             background: linear-gradient(135deg, var(--bg-a), var(--bg-b));
-            background-attachment: fixed; color: #f8fafc; display: flex; margin: 0; min-height: 100vh; overflow-x: hidden;
+            background-attachment: fixed;
+            color: #f8fafc; display: flex; margin: 0; min-height: 100vh; transition: 0.8s ease;
+            overflow-x: hidden;
         }
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: black; pointer-events: none; z-index: 1000; opacity: calc(1 - var(--brightness));
+            background: black; pointer-events: none; z-index: 1;
+            opacity: calc(1 - var(--brightness));
         }
 
         .sidebar {
-            width: 280px; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(15px); border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; height: 100vh; overflow-y: auto; box-sizing: border-box; transition: 0.3s;
+            width: 280px; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1); padding: 20px;
+            display: flex; flex-direction: column; gap: 10px; z-index: 100;
+            height: 100vh; overflow-y: auto; box-sizing: border-box;
+            transition: transform 0.3s ease;
         }
-        .sidebar.hidden { margin-left: -280px; position: absolute; }
-        .toggle-btn { position: fixed; top: 15px; left: 15px; z-index: 110; background: #1e293b; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
-
-        .section-header { font-size: 0.65rem; text-transform: uppercase; color: #3b82f6; margin-top: 15px; border-bottom: 1px solid #334155; font-weight: bold; letter-spacing: 1px; padding-bottom: 3px; }
+        .sidebar.hidden { transform: translateX(-280px); position: absolute; }
         
-        .color-picker-group { display: flex; gap: 15px; align-items: center; padding: 10px 0; }
-        .picker-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; cursor: pointer; padding: 0; overflow: hidden; }
-        .picker-circle input { opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .toggle-btn {
+            position: fixed; top: 15px; left: 15px; z-index: 110;
+            background: #1e293b; border: 1px solid #334155; color: white;
+            padding: 8px 12px; border-radius: 6px; cursor: pointer;
+        }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .btn-ui { font-size: 0.65rem; padding: 8px; cursor: pointer; border-radius: 4px; border: 1px solid #334155; background: #1e293b; color: white; text-align: left; }
+        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 60px 20px; z-index: 5; }
+        .container { width: 100%; max-width: 600px; }
         
-        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 70px 15px; z-index: 5; }
-        .container { width: 100%; max-width: 550px; }
+        .section-header { 
+            font-size: 0.65rem; text-transform: uppercase; color: var(--base); 
+            margin: 12px 0 2px 0; border-bottom: 1px solid #334155; padding-bottom: 2px;
+            letter-spacing: 1px; font-weight: bold;
+        }
+
+        .week-indicator { font-size: 0.6rem; color: #94a3b8; margin-bottom: 8px; font-style: italic; }
+
+        .btn-ui { font-size: 0.65rem; padding: 6px; cursor: pointer; border-radius: 4px; border: 1px solid #334155; background: #1e293b; color: white; width: 100%; text-align: left; margin-bottom: 2px; }
         
-        .toolbar { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
-        .mode-btn { padding: 12px 25px; border-radius: 8px; border: 1px solid #334155; cursor: pointer; font-weight: bold; background: #1e293b; color: white; font-size: 0.75rem; }
-        .active { border-color: currentColor !important; background: rgba(255,255,255,0.05); }
+        .slot-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4px; margin-bottom: 4px; }
+        .btn-s { font-size: 0.6rem; padding: 4px; cursor: pointer; border-radius: 3px; border: 1px solid #334155; background: #0f172a; color: #94a3b8; display: flex; align-items: center; }
+        .btn-save { border-color: var(--solve); color: var(--solve); justify-content: center; }
+        .btn-del { border-color: #ef4444; color: #ef4444; justify-content: center; }
 
-        .input-box { 
-            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #334155; border-radius: 12px; 
-            padding: 25px; font-size: 1.8rem; color: #fff; outline: none; box-sizing: border-box; 
-            text-align: center; margin-bottom: 25px; transition: 0.3s; box-shadow: var(--glow-strength);
-        }
+        .preview-circle { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; border: 1px solid rgba(255,255,255,0.3); flex-shrink: 0; }
+
+        .toolbar { display: flex; gap: 8px; margin-bottom: 15px; }
+        .mode-btn { padding: 12px; border-radius: 8px; border: 1px solid #334155; cursor: pointer; font-weight: 600; background: #1e293b; color: white; flex: 1; font-size: 0.75rem; }
+        .active { border-color: currentColor !important; box-shadow: 0 0 10px rgba(255,255,255,0.1); }
         
-        .lecture-panel { 
-            background: var(--panel-bg); border-radius: 15px; padding: 40px; 
-            border: 1px solid rgba(255,255,255,0.1); text-align: center; transition: 0.3s; box-shadow: var(--glow-strength);
+        .input-box { width: 100%; background: rgba(0,0,0,0.5); border: 2px solid #334155; border-radius: 12px; padding: 22px; font-size: 1.6rem; color: #fff; outline: none; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        .lecture-panel { margin-top: 30px; background: var(--panel-bg); backdrop-filter: blur(12px); border-radius: 16px; padding: 35px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        #answer { font-size: 3rem; font-weight: bold; font-family: 'Times New Roman', serif; margin-bottom: 20px; word-wrap: break-word; }
+        
+        .btn-simplify { 
+            background: transparent; border: 1px solid var(--solve); color: var(--solve); 
+            padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; 
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
         }
-
-        #answer { font-size: 3rem; font-weight: 600; font-family: 'Times New Roman', serif; margin-bottom: 30px; }
-        .btn-simplify { background: transparent; border: 1px solid var(--solve); color: var(--solve); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; font-weight: bold; }
-
-        /* MEMORY SLOTS FIXED */
-        .memory-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
-        .mem-box { 
-            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #334155; 
-            color: #94a3b8; font-size: 0.75rem; padding: 10px; border-radius: 6px;
-            cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-        }
-        .btn-mem { 
-            padding: 10px 15px; font-size: 0.65rem; background: #1e293b; 
-            border: 1px solid var(--solve); color: var(--solve); border-radius: 6px; 
-            cursor: pointer; transition: 0.2s; font-weight: bold;
-        }
-        .btn-mem:active { transform: scale(0.95); background: var(--solve); color: white; }
-        .btn-del { border-color: #ef4444; color: #ef4444; }
-
-        .glow-switch { display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem; color: #94a3b8; padding: 5px 0; }
+        .btn-simplify:hover { background: var(--solve); color: white; box-shadow: 0 0 15px var(--solve); }
     </style>
 </head>
 <body>
-    <button class="toggle-btn" onclick="document.getElementById('sidebar').classList.toggle('hidden')">☰</button>
-    
+
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
     <div class="sidebar" id="sidebar">
-        <div class="section-header">Custom Gradient</div>
-        <div class="color-picker-group">
-            <div class="picker-circle" id="circleA" style="background-color: var(--bg-a)">
-                <input type="color" oninput="updateCustomColor('a', this.value)">
+        <div class="section-header">Core Presets</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+            <button class="btn-ui" onclick="setPreset('#ff6b00', '#ffffff')">Traffic Cone</button>
+            <button class="btn-ui" onclick="setPreset('#1a472a', '#062d14')">Chalkboard</button>
+            <button class="btn-ui" onclick="setPreset('#0f172a', '#1e1b4b')">Midnight</button>
+            <button class="btn-ui" onclick="setPreset('#4c1d95', '#1e1b4b')">Royal</button>
+            <button class="btn-ui" onclick="setPreset('#4a0e0e', '#1a1a1a')">Crimson</button>
+            <button class="btn-ui" onclick="setPreset('#064e3b', '#022c22')">Emerald</button>
+        </div>
+
+        <div id="holidaySection" style="display:none;">
+            <div class="section-header">Holiday Specials</div>
+            <div id="holidayList"></div>
+        </div>
+
+        <div class="section-header">Weekly Variety Pack</div>
+        <div class="week-indicator" id="weekDisplay">Week Loading...</div>
+        <div id="weeklyList"></div>
+
+        <div class="section-header">Customizer</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <input type="range" id="brightRange" min="0.1" max="1" step="0.1" value="1" oninput="updateBrightness(this.value)">
+            <div style="display:flex; gap:5px;">
+                <input type="color" id="colorA" value="#0f172a" oninput="updateGrad()" style="flex:1;">
+                <input type="color" id="colorB" value="#1e1b4b" oninput="updateGrad()" style="flex:1;">
             </div>
-            <div class="picker-circle" id="circleB" style="background-color: var(--bg-b)">
-                <input type="color" oninput="updateCustomColor('b', this.value)">
-            </div>
         </div>
 
-        <div class="section-header">UI Enhancements</div>
-        <div class="glow-switch">
-            <span>Neon Glow</span>
-            <input type="checkbox" id="glowToggle" onchange="toggleGlow(this.checked)">
-        </div>
-
-        <div class="section-header">Memory Slots</div>
-        <div id="memContainer"></div>
-        <button onclick="clearAllSlots()" style="background:none; border:none; color:#ef4444; font-size:0.6rem; margin-top:10px; cursor:pointer;">Clear All Memory</button>
-
-        <div class="section-header">Presets</div>
-        <div class="grid-2">
-            <button class="btn-ui" onclick="setTheme('#1a472a', '#062d14')">Chalkboard</button>
-            <button class="btn-ui" onclick="setTheme('#0f172a', '#1e1b4b')">Midnight</button>
-        </div>
+        <div class="section-header">Memory Slots (5)</div>
+        <div id="slotContainer"></div>
     </div>
 
     <div class="main-content">
         <div class="container">
             <div class="toolbar">
-                <button id="b-solve" class="mode-btn active" onclick="setMode('solve')" style="color:var(--solve)">Solve</button>
-                <button id="b-base" class="mode-btn" onclick="setMode('base')" style="color:var(--base)">Base</button>
+                <button id="m-solve" class="mode-btn" onclick="setMode('solve')" style="color:var(--solve)">Solve (V)</button>
+                <button id="m-base" class="mode-btn" onclick="setMode('base')" style="color:var(--base)">Base</button>
+                <button id="m-permi" class="mode-btn" onclick="setMode('permi')" style="color:var(--permi)">Permi</button>
             </div>
-
-            <input type="text" id="mathInput" class="input-box" placeholder="Type math..." autofocus>
-
+            <input type="text" id="mathInput" class="input-box" placeholder="Type your math..." autofocus>
+            
             <div class="lecture-panel">
                 <div id="answer">Ready</div>
-                <button class="btn-simplify" onclick="doSimplify()">Simplify</button>
+                <button class="btn-simplify" onclick="manualSimplify()">Simplify Answer</button>
             </div>
         </div>
     </div>
 
     <script>
-        let mode = 'solve';
+        let mainMode = 'solve';
         const input = document.getElementById('mathInput');
-        const display = document.getElementById('answer');
-        
-        // Forced initialization of slots
-        let slots = JSON.parse(localStorage.getItem('masterSlots') || '["","","","",""]');
 
-        function setMode(m) {
-            mode = m;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('b-' + m).classList.add('active');
-            calc();
+        function toMixed(frac) {
+            if (typeof frac !== 'string' || !frac.includes('/') || /[a-z]/i.test(frac)) return frac;
+            let p = frac.split('/'); let n = Math.abs(parseInt(p[0])), d = Math.abs(parseInt(p[1]));
+            if (isNaN(n) || isNaN(d) || d === 0) return frac;
+            if (n < d) return frac;
+            let w = Math.floor(n / d), r = n % d, s = parseInt(p[0]) < 0 ? "-" : "";
+            return r === 0 ? s + w : `${s}${w}_${r}/${d}`;
         }
 
-        function setTheme(a, b) {
-            document.documentElement.style.setProperty('--bg-a', a);
-            document.documentElement.style.setProperty('--bg-b', b);
-        }
-
-        function updateCustomColor(type, val) {
-            document.documentElement.style.setProperty(`--bg-${type}`, val);
-            document.getElementById(`circle${type.toUpperCase()}`).style.backgroundColor = val;
-        }
-
-        function toggleGlow(enabled) {
-            const glow = enabled ? "0px 0px 25px rgba(59, 130, 246, 0.6)" : "0px 0px 0px transparent";
-            document.documentElement.style.setProperty('--glow-strength', glow);
-        }
-
-        function calc() {
-            let val = input.value.trim();
-            if (!val) { display.innerText = "Ready"; return; }
+        function calculate() {
+            let val = input.value.trim(); 
+            if (!val) { document.getElementById('answer').innerText = "Ready"; return; }
             try {
-                let clean = val.replace(/(\d)([a-zA-Z\(])/g, '$1*$2');
-                if (mode === 'solve') {
-                    let v = val.match(/[a-zA-Z]/) ? val.match(/[a-zA-Z]/)[0] : 'x';
+                let clean = val.replace(/(\d+)_(\d+)\/(\d+)/g, '($1 + $2/$3)')
+                               .replace(/(\d)([VLPW\(])/gi, '$1*$2')
+                               .replace(/\)([VLPW\d\(])/gi, ')*$2');
+                
+                let ans = "";
+                if (mainMode === 'solve') {
                     let eq = clean.includes('=') ? `(${clean.split('=')[0]}) - (${clean.split('=')[1]})` : clean;
-                    display.innerText = Algebrite.run(`roots(${eq}, ${v})`).toString().replace(/[\[\]]/g, "");
+                    let result = Algebrite.run(`roots(${eq}, V)`).toString();
+                    let roots = result.replace(/[\[\] ]/g, "").split(',');
+                    ans = "V = " + roots.map(r => toMixed(r)).join(", ");
+                } else if (mainMode === 'permi') {
+                    ans = "P = " + toMixed(Algebrite.run(`simplify(2 * (${clean.replace(/,/g, '+')}))`).toString());
                 } else {
-                    display.innerText = Algebrite.run(`simplify(${clean})`).toString();
+                    ans = toMixed(Algebrite.run(`simplify(${clean})`).toString());
                 }
-            } catch(e) { display.innerText = "..."; }
+                document.getElementById('answer').innerText = ans || "∅";
+            } catch (e) { document.getElementById('answer').innerText = "..."; }
         }
 
-        function doSimplify() {
+        function manualSimplify() {
+            let current = document.getElementById('answer').innerText;
+            if (current === "Ready" || current === "...") return;
+            // Remove labels like "V =" or "P =" before simplifying
+            let raw = current.includes('=') ? current.split('=')[1].trim() : current;
             try {
-                display.innerText = Algebrite.run(`simplify(${display.innerText})`).toString();
-            } catch(e) {}
+                let simplified = Algebrite.run(`simplify(${raw})`).toString();
+                document.getElementById('answer').innerText = (current.includes('=') ? current.split('=')[0] + "= " : "") + toMixed(simplified);
+            } catch(e) { console.log("Can't simplify further"); }
         }
 
-        // --- ENHANCED SAVING LOGIC ---
+        // Sidebar & Theme Logic
+        const allWeeklyPool = [
+            { name: "Ocean Slate", a: "#1e293b", b: "#334155", br: 1.0 },
+            { name: "Neon Honors", a: "#000000", b: "#059669", br: 0.9 },
+            { name: "Deep Violet", a: "#2e1065", b: "#0f172a", br: 1.0 },
+            { name: "Cyber Sunset", a: "#701c45", b: "#111827", br: 0.9 },
+            { name: "Arctic Lab", a: "#f0f9ff", b: "#0c4a6e", br: 0.8 }
+        ];
+
+        function getWeekNumber() {
+            const now = new Date(); const start = new Date(now.getFullYear(), 0, 1);
+            return Math.floor((((now - start) / 86400000) + start.getDay() + 1) / 7);
+        }
+
+        function renderWeeklyVariety() {
+            const weekNum = getWeekNumber();
+            document.getElementById('weekDisplay').innerText = `Current: Week ${weekNum}`;
+            const list = document.getElementById('weeklyList'); list.innerHTML = '';
+            for(let i=0; i<3; i++) {
+                const t = allWeeklyPool[(weekNum + i) % allWeeklyPool.length];
+                const btn = document.createElement('button'); btn.className = 'btn-ui';
+                btn.innerHTML = `<span class="preview-circle" style="background:linear-gradient(to right, ${t.a}, ${t.b})"></span> ${t.name}`;
+                btn.onclick = () => { setPreset(t.a, t.b); updateBrightness(t.br); };
+                list.appendChild(btn);
+            }
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+        function updateBrightness(v) { document.documentElement.style.setProperty('--brightness', v); document.getElementById('brightRange').value = v; }
+        function updateGrad() {
+            const a = document.getElementById('colorA').value; const b = document.getElementById('colorB').value;
+            document.documentElement.style.setProperty('--bg-a', a); document.documentElement.style.setProperty('--bg-b', b);
+        }
+        function setPreset(a, b) { document.getElementById('colorA').value = a; document.getElementById('colorB').value = b; updateGrad(); }
+
+        function saveSlot(n) {
+            localStorage.setItem('slot'+n, JSON.stringify({a: document.getElementById('colorA').value, b: document.getElementById('colorB').value, br: document.getElementById('brightRange').value}));
+            renderSlots();
+        }
+        function loadSlot(n) {
+            const s = JSON.parse(localStorage.getItem('slot'+n));
+            if(s) { document.getElementById('colorA').value = s.a; document.getElementById('colorB').value = s.b; updateGrad(); updateBrightness(s.br); }
+        }
+        function deleteSlot(n) { localStorage.removeItem('slot'+n); renderSlots(); }
+
         function renderSlots() {
-            const container = document.getElementById('memContainer');
-            container.innerHTML = slots.map((s, i) => `
-                <div class="memory-row">
-                    <div class="mem-box" onclick="loadSlot(${i})">${s || 'Empty Slot'}</div>
-                    <button class="btn-mem" onclick="saveSlot(${i})">SAVE</button>
-                    <button class="btn-mem btn-del" onclick="deleteSlot(${i})">X</button>
-                </div>
-            `).join('');
-        }
-
-        function saveSlot(i) {
-            const val = input.value.trim();
-            if (!val) return;
-            
-            slots[i] = val;
-            localStorage.setItem('masterSlots', JSON.stringify(slots));
-            renderSlots();
-            console.log("Saved to slot " + i);
-        }
-
-        function loadSlot(i) {
-            if (slots[i]) {
-                input.value = slots[i];
-                calc();
+            let h = '';
+            for(let i=1; i<=5; i++) {
+                const s = JSON.parse(localStorage.getItem('slot'+i));
+                const preview = s ? `<span class="preview-circle" style="background: linear-gradient(to right, ${s.a}, ${s.b})"></span>` : '';
+                h += `<div class="slot-row">
+                    <button class="btn-s" onclick="loadSlot(${i})">${preview}${s?'Slot '+i:'Empty'}</button>
+                    <button class="btn-s btn-save" onclick="saveSlot(${i})">Save</button>
+                    <button class="btn-s btn-del" onclick="deleteSlot(${i})">✖</button>
+                </div>`;
             }
+            document.getElementById('slotContainer').innerHTML = h;
         }
 
-        function deleteSlot(i) {
-            slots[i] = "";
-            localStorage.setItem('masterSlots', JSON.stringify(slots));
-            renderSlots();
+        function setMode(m) { 
+            mainMode = m;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); 
+            document.getElementById('m-' + m).classList.add('active'); 
+            calculate();
         }
 
-        function clearAllSlots() {
-            if(confirm("Clear all math history?")) {
-                slots = ["","","","",""];
-                localStorage.setItem('masterSlots', JSON.stringify(slots));
-                renderSlots();
-            }
-        }
-
-        input.addEventListener('input', calc);
-        window.onload = renderSlots;
+        input.addEventListener('input', calculate);
+        window.onload = () => { renderWeeklyVariety(); renderSlots(); setMode('solve'); };
     </script>
 </body>
 </html>

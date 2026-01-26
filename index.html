@@ -4,162 +4,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honors Master Solver</title>
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3771/3771278.png">
-
     <script src="https://cdn.jsdelivr.net/npm/algebrite@1.4.0/dist/algebrite.bundle-for-browser.min.js"></script>
-    
     <style>
         :root { 
-            --solve: #10b981; --base: #3b82f6; 
+            --solve: #10b981; --base: #3b82f6; --permi: #a855f7; 
             --bg-a: #0f172a; --bg-b: #1e1b4b;
-            --panel-bg: rgba(15, 23, 42, 0.95);
+            --brightness: 1; --panel-bg: rgba(15, 23, 42, 0.9);
         }
         body { 
-            font-family: system-ui, -apple-system, sans-serif; 
+            font-family: 'Inter', system-ui, sans-serif; 
             background: linear-gradient(135deg, var(--bg-a), var(--bg-b));
-            background-attachment: fixed; color: #f8fafc; 
-            margin: 0; display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; padding: 20px; box-sizing: border-box;
+            background-attachment: fixed; color: #f8fafc; display: flex; margin: 0; min-height: 100vh; overflow-x: hidden;
         }
-        .container { width: 100%; max-width: 500px; margin-top: 20px; }
-        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
-        .mode-btn { 
-            flex: 1; padding: 15px; border-radius: 12px; border: 1px solid #334155;
-            background: #1e293b; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; pointer-events: none; z-index: 1; opacity: calc(1 - var(--brightness));
         }
-        .active { border-color: var(--solve); background: rgba(16, 185, 129, 0.1); }
-        .input-box { 
-            width: 100%; background: #000; border: 2px solid #334155; border-radius: 15px; 
-            padding: 20px; font-size: 1.5rem; color: #fff; outline: none; box-sizing: border-box;
-            text-align: center; margin-bottom: 20px;
+        .sidebar {
+            width: 280px; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(15px); border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; height: 100vh; overflow-y: auto; box-sizing: border-box; transition: 0.3s;
         }
-        .lecture-panel { 
-            background: var(--panel-bg); border-radius: 20px; padding: 30px; 
-            border: 1px solid rgba(255,255,255,0.1); text-align: center; margin-bottom: 20px;
-        }
-        #answer { font-size: 2.2rem; font-weight: bold; margin-bottom: 25px; min-height: 1.2em; word-break: break-all; }
-        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
-        .btn-action { 
-            background: transparent; border: 1px solid var(--solve); color: var(--solve); 
-            padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 0.8rem;
-        }
-        .history-section {
-            background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .history-title { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; display: block; letter-spacing: 1px; }
-        .history-item { 
-            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; 
-            margin-bottom: 8px; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-        }
-        .history-item:active { background: rgba(255,255,255,0.1); }
-        .var-tag { font-size: 0.6rem; background: var(--solve); color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 8px; }
+        .sidebar.hidden { transform: translateX(-280px); position: absolute; }
+        .toggle-btn { position: fixed; top: 15px; left: 15px; z-index: 110; background: #1e293b; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 70px 15px; z-index: 5; }
+        .container { width: 100%; max-width: 500px; }
+        .section-header { font-size: 0.7rem; text-transform: uppercase; color: var(--base); margin-top: 15px; border-bottom: 1px solid #334155; font-weight: bold; }
+        .week-indicator { font-size: 0.65rem; color: #94a3b8; margin: 5px 0; font-style: italic; }
+        .btn-ui { font-size: 0.7rem; padding: 10px; cursor: pointer; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; width: 100%; text-align: left; margin-bottom: 4px; }
+        .toolbar { display: flex; gap: 8px; margin-bottom: 20px; }
+        .mode-btn { padding: 14px; border-radius: 10px; border: 1px solid #334155; cursor: pointer; font-weight: bold; background: #1e293b; color: white; flex: 1; font-size: 0.8rem; }
+        .active { border-color: currentColor !important; background: rgba(255,255,255,0.05); }
+        .input-box { width: 100%; background: rgba(0,0,0,0.4); border: 2px solid #334155; border-radius: 15px; padding: 20px; font-size: 1.5rem; color: #fff; outline: none; box-sizing: border-box; text-align: center; }
+        .lecture-panel { margin-top: 25px; background: var(--panel-bg); border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); text-align: center; position: relative;}
+        #answer { font-size: 2.5rem; font-weight: bold; font-family: 'Times New Roman', serif; margin-bottom: 25px; word-wrap: break-word;}
+        .action-group { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .btn-action { background: transparent; border: 1px solid var(--solve); color: var(--solve); padding: 10px 20px; border-radius: 25px; cursor: pointer; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; transition: 0.2s; }
+        .btn-action:hover { background: var(--solve); color: white; }
+        .btn-clear { border-color: #ef4444; color: #ef4444; }
+        .btn-clear:hover { background: #ef4444; }
     </style>
 </head>
 <body>
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="section-header">Weekly Variety Pack</div>
+        <div class="week-indicator" id="weekDisplay">Week Loading...</div>
+        <div id="weeklyList"></div>
+        <div class="section-header">Brightness</div>
+        <input type="range" id="brightRange" min="0.2" max="1" step="0.1" value="1" oninput="updateBrightness(this.value)" style="width:100%">
+    </div>
 
-    <div class="container">
-        <div class="toolbar">
-            <button id="btn-solve" class="mode-btn active" onclick="setMode('solve')">SOLVER</button>
-            <button id="btn-base" class="mode-btn" onclick="setMode('base')">SIMPLIFY</button>
-        </div>
-
-        <input type="text" id="mathInput" class="input-box" placeholder="Equation (e.g. 2x+5=11)" autofocus autocomplete="off">
-
-        <div class="lecture-panel">
-            <div id="answer">Ready</div>
-            <div class="btn-group">
-                <button class="btn-action" onclick="saveToHistory()">Save to History</button>
-                <button class="btn-action" style="border-color:#3b82f6; color:#3b82f6;" onclick="copyResult()">Copy Answer</button>
+    <div class="main-content">
+        <div class="container">
+            <div class="toolbar">
+                <button id="m-solve" class="mode-btn" onclick="setMode('solve')" style="color:var(--solve)">SOLVE</button>
+                <button id="m-base" class="mode-btn" onclick="setMode('base')" style="color:var(--base)">BASE</button>
             </div>
-        </div>
-
-        <div class="history-section">
-            <span class="history-title">Recent Work</span>
-            <div id="historyList"></div>
-            <button class="btn-action" style="font-size: 0.65rem; border: none; color: #ef4444; width:100%; margin-top:10px;" onclick="clearHistory()">Clear History Data</button>
+            <input type="text" id="mathInput" class="input-box" placeholder="Equation..." autofocus autocomplete="off">
+            <div class="lecture-panel">
+                <div id="answer">Ready</div>
+                <div class="action-group">
+                    <button class="btn-action" onclick="manualSimplify()">Simplify</button>
+                    <button class="btn-action" onclick="copyToClipboard()">Copy</button>
+                    <button class="btn-action btn-clear" onclick="clearAll()">Clear</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        let mode = 'solve';
+        let mainMode = 'solve';
         const input = document.getElementById('mathInput');
-        const display = document.getElementById('answer');
-        let history = JSON.parse(localStorage.getItem('mathHistory') || '[]');
 
-        function setMode(m) {
-            mode = m;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + m).classList.add('active');
-            calculate();
+        function toMixed(frac) {
+            if (typeof frac !== 'string' || !frac.includes('/') || /[a-z]/i.test(frac)) return frac;
+            let p = frac.split('/'); let n = Math.abs(parseInt(p[0])), d = Math.abs(parseInt(p[1]));
+            if (isNaN(n) || isNaN(d) || d === 0 || n < d) return frac;
+            let w = Math.floor(n / d), r = n % d, s = parseInt(p[0]) < 0 ? "-" : "";
+            return r === 0 ? s + w : `${s}${w}_${r}/${d}`;
         }
 
         function calculate() {
-            let val = input.value.trim();
-            if (!val) { display.innerText = "Ready"; return; }
+            let val = input.value.trim(); 
+            if (!val) { document.getElementById('answer').innerText = "Ready"; return; }
             try {
-                let clean = val.replace(/(\d)([a-zA-Z\(])/g, '$1*$2'); 
-                if (mode === 'solve') {
-                    let variable = val.match(/[a-zA-Z]/) ? val.match(/[a-zA-Z]/)[0] : 'x';
-                    let eq = clean.includes('=') ? `(${clean.split('=')[0]}) - (${clean.split('=')[1]})` : clean;
-                    let sol = Algebrite.run(`roots(${eq}, ${variable})`).toString().replace(/[\[\]]/g, "");
-                    display.innerText = `${variable.toUpperCase()} = ${sol}`;
-                } else {
-                    display.innerText = Algebrite.run(`simplify(${clean})`).toString();
-                }
-            } catch (err) { display.innerText = "..."; }
+                let clean = val.replace(/(\d+)_(\d+)\/(\d+)/g, '($1 + $2/$3)').replace(/(\d)([VLPW\(])/gi, '$1*$2');
+                let ans = (mainMode === 'solve') ? "V = " + Algebrite.run(`roots(${clean.includes('=') ? `(${clean.split('=')[0]}) - (${clean.split('=')[1]})` : clean}, V)`).toString().replace(/[\[\] ]/g, "").split(',').map(r => toMixed(r)).join(", ") : toMixed(Algebrite.run(`simplify(${clean})`).toString());
+                document.getElementById('answer').innerText = ans || "∅";
+            } catch (e) { document.getElementById('answer').innerText = "..."; }
         }
 
-        function saveToHistory() {
-            let eq = input.value;
-            let ans = display.innerText;
-            if (!eq || ans === "Ready" || ans === "...") return;
-            
-            // Avoid duplicates
-            if (history.length > 0 && history[0].eq === eq) return;
-
-            history.unshift({eq, ans});
-            if (history.length > 5) history.pop();
-            localStorage.setItem('mathHistory', JSON.stringify(history));
-            renderHistory();
+        function manualSimplify() {
+            let cur = document.getElementById('answer').innerText;
+            if (cur === "Ready" || cur === "...") return;
+            try {
+                let raw = cur.includes('=') ? cur.split('=')[1].trim() : cur;
+                document.getElementById('answer').innerText = (cur.includes('=') ? cur.split('=')[0] + "= " : "") + toMixed(Algebrite.run(`simplify(${raw})`).toString());
+            } catch(e) {}
         }
 
-        function renderHistory() {
-            const list = document.getElementById('historyList');
-            if (history.length === 0) { list.innerHTML = '<p style="font-size:0.8rem; color:#475569; text-align:center;">No recent work saved</p>'; return; }
-            list.innerHTML = history.map((item, index) => `
-                <div class="history-item" onclick="loadHistory(${index})">
-                    <span style="overflow:hidden; text-overflow:ellipsis;">${item.eq}</span>
-                    <span style="color:var(--solve); font-weight:bold;">${item.ans}</span>
-                </div>
-            `).join('');
+        function copyToClipboard() {
+            const text = document.getElementById('answer').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('button[onclick="copyToClipboard()"]');
+                const oldText = btn.innerText;
+                btn.innerText = "COPIED!";
+                setTimeout(() => btn.innerText = oldText, 2000);
+            });
         }
 
-        function loadHistory(index) {
-            input.value = history[index].eq;
-            calculate();
+        function clearAll() {
+            input.value = "";
+            document.getElementById('answer').innerText = "Ready";
+            input.focus();
         }
 
-        function clearHistory() {
-            if(confirm("Delete all saved equations?")) {
-                history = [];
-                localStorage.removeItem('mathHistory');
-                renderHistory();
-            }
+        function setMode(m) { 
+            mainMode = m; 
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); 
+            document.getElementById('m-' + m).classList.add('active'); 
+            calculate(); 
         }
 
-        function copyResult() {
-            navigator.clipboard.writeText(display.innerText);
-            const btn = document.querySelector('button[onclick="copyResult()"]');
-            btn.innerText = "Copied!";
-            setTimeout(() => btn.innerText = "Copy Answer", 2000);
-        }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+        function updateBrightness(v) { document.documentElement.style.setProperty('--brightness', v); }
 
         input.addEventListener('input', calculate);
-        window.onload = renderHistory;
+        window.onload = () => { 
+            const week = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 1)) / 604800000) + 1;
+            document.getElementById('weekDisplay').innerText = `Current: Week ${week}`;
+            setMode('solve');
+        };
     </script>
 </body>
 </html>

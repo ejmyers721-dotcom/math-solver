@@ -28,7 +28,6 @@
             background: black; pointer-events: none; z-index: 1000; opacity: calc(1 - var(--brightness));
         }
 
-        /* SIDEBAR */
         .sidebar {
             width: 280px; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(15px); border-right: 1px solid rgba(255, 255, 255, 0.1);
             padding: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; height: 100vh; overflow-y: auto; box-sizing: border-box; transition: 0.3s;
@@ -38,10 +37,13 @@
 
         .section-header { font-size: 0.65rem; text-transform: uppercase; color: #3b82f6; margin-top: 15px; border-bottom: 1px solid #334155; font-weight: bold; letter-spacing: 1px; padding-bottom: 3px; }
         
+        .color-picker-group { display: flex; gap: 15px; align-items: center; padding: 10px 0; }
+        .picker-circle { width: 40px; height: 40px; border-radius: 50%; border: 2px solid white; cursor: pointer; padding: 0; overflow: hidden; }
+        .picker-circle input { opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
         .btn-ui { font-size: 0.65rem; padding: 8px; cursor: pointer; border-radius: 4px; border: 1px solid #334155; background: #1e293b; color: white; text-align: left; }
         
-        /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 70px 15px; z-index: 5; }
         .container { width: 100%; max-width: 550px; }
         
@@ -49,31 +51,25 @@
         .mode-btn { padding: 12px 25px; border-radius: 8px; border: 1px solid #334155; cursor: pointer; font-weight: bold; background: #1e293b; color: white; font-size: 0.75rem; }
         .active { border-color: currentColor !important; background: rgba(255,255,255,0.05); }
 
-        /* GLOWING ELEMENTS */
         .input-box { 
             width: 100%; background: rgba(0,0,0,0.5); border: 1px solid #334155; border-radius: 12px; 
             padding: 25px; font-size: 1.8rem; color: #fff; outline: none; box-sizing: border-box; 
-            text-align: center; margin-bottom: 25px; transition: 0.3s;
-            box-shadow: var(--glow-strength);
+            text-align: center; margin-bottom: 25px; transition: 0.3s; box-shadow: var(--glow-strength);
         }
         
         .lecture-panel { 
             background: var(--panel-bg); border-radius: 15px; padding: 40px; 
-            border: 1px solid rgba(255,255,255,0.1); text-align: center; transition: 0.3s;
-            box-shadow: var(--glow-strength);
+            border: 1px solid rgba(255,255,255,0.1); text-align: center; transition: 0.3s; box-shadow: var(--glow-strength);
         }
 
         #answer { font-size: 3rem; font-weight: 600; font-family: 'Times New Roman', serif; margin-bottom: 30px; }
-        
         .btn-simplify { background: transparent; border: 1px solid var(--solve); color: var(--solve); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; font-weight: bold; }
 
-        /* MEMORY SLOTS */
         .memory-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; }
         .mem-box { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid #334155; color: #64748b; font-size: 0.65rem; padding: 8px; height: 30px; line-height: 14px; overflow: hidden; }
         .btn-mem { padding: 5px 10px; font-size: 0.6rem; background: transparent; border: 1px solid #10b981; color: #10b981; border-radius: 3px; cursor: pointer; }
         .btn-del { border-color: #ef4444; color: #ef4444; }
 
-        /* TOGGLE SWITCH FOR GLOW */
         .glow-switch { display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem; color: #94a3b8; padding: 5px 0; }
     </style>
 </head>
@@ -81,6 +77,17 @@
     <button class="toggle-btn" onclick="document.getElementById('sidebar').classList.toggle('hidden')">☰</button>
     
     <div class="sidebar" id="sidebar">
+        <div class="section-header">Custom Gradient</div>
+        <div class="color-picker-group">
+            <div class="picker-circle" id="circleA" style="background-color: var(--bg-a)">
+                <input type="color" oninput="updateCustomColor('a', this.value)">
+            </div>
+            <div class="picker-circle" id="circleB" style="background-color: var(--bg-b)">
+                <input type="color" oninput="updateCustomColor('b', this.value)">
+            </div>
+            <span style="font-size: 0.6rem; color: #94a3b8;">Tap circles to mix</span>
+        </div>
+
         <div class="section-header">UI Enhancements</div>
         <div class="glow-switch">
             <span>Neon Glow</span>
@@ -93,14 +100,7 @@
             <button class="btn-ui" onclick="setTheme('#1a472a', '#062d14')">Chalkboard</button>
             <button class="btn-ui" onclick="setTheme('#0f172a', '#1e1b4b')">Midnight</button>
             <button class="btn-ui" onclick="setTheme('#4c1d95', '#1e1b4b')">Royal</button>
-            <button class="btn-ui" onclick="setTheme('#7f1d1d', '#450a0a')">Crimson</button>
-            <button class="btn-ui" onclick="setTheme('#064e3b', '#022c22')">Emerald</button>
         </div>
-
-        <div class="section-header">Weekly Variety Pack</div>
-        <button class="btn-ui" onclick="setTheme('#431407', '#27272a')">○ Cyber Sunset</button>
-        <button class="btn-ui" onclick="setTheme('#0f172a', '#0891b2')">● Arctic Lab</button>
-        <button class="btn-ui" onclick="setTheme('#1e293b', '#0f172a')">○ Ocean Slate</button>
 
         <div class="section-header">Customizer</div>
         <input type="range" min="0.2" max="1" step="0.1" value="1" oninput="document.documentElement.style.setProperty('--brightness', this.value)" style="width:100%; margin: 10px 0;">
@@ -142,10 +142,18 @@
         function setTheme(a, b) {
             document.documentElement.style.setProperty('--bg-a', a);
             document.documentElement.style.setProperty('--bg-b', b);
+            document.getElementById('circleA').style.backgroundColor = a;
+            document.getElementById('circleB').style.backgroundColor = b;
+        }
+
+        function updateCustomColor(type, val) {
+            const varName = `--bg-${type}`;
+            document.documentElement.style.setProperty(varName, val);
+            document.getElementById(`circle${type.toUpperCase()}`).style.backgroundColor = val;
         }
 
         function toggleGlow(enabled) {
-            const glow = enabled ? "0px 0px 20px rgba(59, 130, 246, 0.5)" : "0px 0px 0px transparent";
+            const glow = enabled ? "0px 0px 25px rgba(59, 130, 246, 0.6)" : "0px 0px 0px transparent";
             document.documentElement.style.setProperty('--glow-strength', glow);
         }
 

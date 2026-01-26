@@ -65,9 +65,19 @@
         #answer { font-size: 3rem; font-weight: 600; font-family: 'Times New Roman', serif; margin-bottom: 30px; }
         .btn-simplify { background: transparent; border: 1px solid var(--solve); color: var(--solve); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; font-weight: bold; }
 
-        .memory-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; }
-        .mem-box { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid #334155; color: #64748b; font-size: 0.65rem; padding: 8px; height: 30px; line-height: 14px; overflow: hidden; }
-        .btn-mem { padding: 5px 10px; font-size: 0.6rem; background: transparent; border: 1px solid #10b981; color: #10b981; border-radius: 3px; cursor: pointer; }
+        /* MEMORY SLOTS FIXED */
+        .memory-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+        .mem-box { 
+            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid #334155; 
+            color: #94a3b8; font-size: 0.75rem; padding: 10px; border-radius: 6px;
+            cursor: pointer; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+        }
+        .btn-mem { 
+            padding: 10px 15px; font-size: 0.65rem; background: #1e293b; 
+            border: 1px solid var(--solve); color: var(--solve); border-radius: 6px; 
+            cursor: pointer; transition: 0.2s; font-weight: bold;
+        }
+        .btn-mem:active { transform: scale(0.95); background: var(--solve); color: white; }
         .btn-del { border-color: #ef4444; color: #ef4444; }
 
         .glow-switch { display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem; color: #94a3b8; padding: 5px 0; }
@@ -85,7 +95,6 @@
             <div class="picker-circle" id="circleB" style="background-color: var(--bg-b)">
                 <input type="color" oninput="updateCustomColor('b', this.value)">
             </div>
-            <span style="font-size: 0.6rem; color: #94a3b8;">Tap circles to mix</span>
         </div>
 
         <div class="section-header">UI Enhancements</div>
@@ -94,34 +103,29 @@
             <input type="checkbox" id="glowToggle" onchange="toggleGlow(this.checked)">
         </div>
 
+        <div class="section-header">Memory Slots</div>
+        <div id="memContainer"></div>
+        <button onclick="clearAllSlots()" style="background:none; border:none; color:#ef4444; font-size:0.6rem; margin-top:10px; cursor:pointer;">Clear All Memory</button>
+
         <div class="section-header">Presets</div>
         <div class="grid-2">
-            <button class="btn-ui" onclick="setTheme('#b45309', '#78350f')">Traffic Cone</button>
             <button class="btn-ui" onclick="setTheme('#1a472a', '#062d14')">Chalkboard</button>
             <button class="btn-ui" onclick="setTheme('#0f172a', '#1e1b4b')">Midnight</button>
-            <button class="btn-ui" onclick="setTheme('#4c1d95', '#1e1b4b')">Royal</button>
         </div>
-
-        <div class="section-header">Customizer</div>
-        <input type="range" min="0.2" max="1" step="0.1" value="1" oninput="document.documentElement.style.setProperty('--brightness', this.value)" style="width:100%; margin: 10px 0;">
-        
-        <div class="section-header">Memory Slots (5)</div>
-        <div id="memContainer"></div>
     </div>
 
     <div class="main-content">
         <div class="container">
             <div class="toolbar">
-                <button id="b-solve" class="mode-btn active" onclick="setMode('solve')" style="color:var(--solve)">Solve (V)</button>
+                <button id="b-solve" class="mode-btn active" onclick="setMode('solve')" style="color:var(--solve)">Solve</button>
                 <button id="b-base" class="mode-btn" onclick="setMode('base')" style="color:var(--base)">Base</button>
-                <button id="b-permi" class="mode-btn" onclick="setMode('permi')" style="color:var(--permi)">Permi</button>
             </div>
 
-            <input type="text" id="mathInput" class="input-box" placeholder="Type your math..." autofocus>
+            <input type="text" id="mathInput" class="input-box" placeholder="Type math..." autofocus>
 
             <div class="lecture-panel">
                 <div id="answer">Ready</div>
-                <button class="btn-simplify" onclick="doSimplify()">Simplify Answer</button>
+                <button class="btn-simplify" onclick="doSimplify()">Simplify</button>
             </div>
         </div>
     </div>
@@ -130,6 +134,8 @@
         let mode = 'solve';
         const input = document.getElementById('mathInput');
         const display = document.getElementById('answer');
+        
+        // Forced initialization of slots
         let slots = JSON.parse(localStorage.getItem('masterSlots') || '["","","","",""]');
 
         function setMode(m) {
@@ -142,13 +148,10 @@
         function setTheme(a, b) {
             document.documentElement.style.setProperty('--bg-a', a);
             document.documentElement.style.setProperty('--bg-b', b);
-            document.getElementById('circleA').style.backgroundColor = a;
-            document.getElementById('circleB').style.backgroundColor = b;
         }
 
         function updateCustomColor(type, val) {
-            const varName = `--bg-${type}`;
-            document.documentElement.style.setProperty(varName, val);
+            document.documentElement.style.setProperty(`--bg-${type}`, val);
             document.getElementById(`circle${type.toUpperCase()}`).style.backgroundColor = val;
         }
 
@@ -163,7 +166,7 @@
             try {
                 let clean = val.replace(/(\d)([a-zA-Z\(])/g, '$1*$2');
                 if (mode === 'solve') {
-                    let v = val.match(/[a-zA-Z]/) ? val.match(/[a-zA-Z]/)[0] : 'v';
+                    let v = val.match(/[a-zA-Z]/) ? val.match(/[a-zA-Z]/)[0] : 'x';
                     let eq = clean.includes('=') ? `(${clean.split('=')[0]}) - (${clean.split('=')[1]})` : clean;
                     display.innerText = Algebrite.run(`roots(${eq}, ${v})`).toString().replace(/[\[\]]/g, "");
                 } else {
@@ -178,14 +181,47 @@
             } catch(e) {}
         }
 
+        // --- ENHANCED SAVING LOGIC ---
         function renderSlots() {
-            document.getElementById('memContainer').innerHTML = slots.map((s, i) => `
+            const container = document.getElementById('memContainer');
+            container.innerHTML = slots.map((s, i) => `
                 <div class="memory-row">
-                    <div class="mem-box" onclick="input.value='${s}';calc();">${s || 'Empty'}</div>
-                    <button class="btn-mem" onclick="slots[${i}]=input.value; localStorage.setItem('masterSlots', JSON.stringify(slots)); renderSlots();">Save</button>
-                    <button class="btn-mem btn-del" onclick="slots[${i}]=''; localStorage.setItem('masterSlots', JSON.stringify(slots)); renderSlots();">X</button>
+                    <div class="mem-box" onclick="loadSlot(${i})">${s || 'Empty Slot'}</div>
+                    <button class="btn-mem" onclick="saveSlot(${i})">SAVE</button>
+                    <button class="btn-mem btn-del" onclick="deleteSlot(${i})">X</button>
                 </div>
             `).join('');
+        }
+
+        function saveSlot(i) {
+            const val = input.value.trim();
+            if (!val) return;
+            
+            slots[i] = val;
+            localStorage.setItem('masterSlots', JSON.stringify(slots));
+            renderSlots();
+            console.log("Saved to slot " + i);
+        }
+
+        function loadSlot(i) {
+            if (slots[i]) {
+                input.value = slots[i];
+                calc();
+            }
+        }
+
+        function deleteSlot(i) {
+            slots[i] = "";
+            localStorage.setItem('masterSlots', JSON.stringify(slots));
+            renderSlots();
+        }
+
+        function clearAllSlots() {
+            if(confirm("Clear all math history?")) {
+                slots = ["","","","",""];
+                localStorage.setItem('masterSlots', JSON.stringify(slots));
+                renderSlots();
+            }
         }
 
         input.addEventListener('input', calc);

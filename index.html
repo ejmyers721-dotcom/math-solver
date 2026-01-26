@@ -15,75 +15,72 @@
         :root { 
             --solve: #10b981; --base: #3b82f6; 
             --bg-a: #0f172a; --bg-b: #1e1b4b;
-            --brightness: 1; --panel-bg: rgba(15, 23, 42, 0.95);
+            --panel-bg: rgba(15, 23, 42, 0.95);
         }
         body { 
             font-family: system-ui, -apple-system, sans-serif; 
             background: linear-gradient(135deg, var(--bg-a), var(--bg-b));
-            background-attachment: fixed; color: #f8fafc; margin: 0; display: flex; min-height: 100vh;
+            background-attachment: fixed; color: #f8fafc; 
+            margin: 0; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding: 20px; box-sizing: border-box;
         }
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: black; pointer-events: none; z-index: 1000; opacity: calc(1 - var(--brightness));
+        .container { width: 100%; max-width: 500px; margin-top: 20px; }
+        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .mode-btn { 
+            flex: 1; padding: 15px; border-radius: 12px; border: 1px solid #334155;
+            background: #1e293b; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
-        /* SIDEBAR */
-        .sidebar {
-            width: 280px; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1); padding: 20px;
-            display: flex; flex-direction: column; gap: 15px; z-index: 100; transition: 0.3s;
-        }
-        .sidebar.hidden { margin-left: -280px; }
-        .toggle-btn { position: fixed; top: 15px; left: 15px; z-index: 110; background: #1e293b; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
-        
-        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 60px 20px; }
-        .container { width: 100%; max-width: 500px; }
-        
-        /* UI ELEMENTS */
-        .section-header { font-size: 0.7rem; text-transform: uppercase; color: var(--base); border-bottom: 1px solid #334155; padding-bottom: 5px; margin-top: 10px; }
-        .input-box { width: 100%; background: #000; border: 2px solid #334155; border-radius: 15px; padding: 20px; font-size: 1.5rem; color: #fff; text-align: center; margin-bottom: 20px; box-sizing: border-box; }
-        .lecture-panel { background: var(--panel-bg); border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        #answer { font-size: 2.2rem; font-weight: bold; margin-bottom: 20px; word-break: break-all; }
-        
-        .mode-btn { flex: 1; padding: 15px; border-radius: 12px; background: #1e293b; color: white; border: 1px solid #334155; cursor: pointer; font-weight: bold; }
         .active { border-color: var(--solve); background: rgba(16, 185, 129, 0.1); }
-        .btn-action { background: transparent; border: 1px solid var(--solve); color: var(--solve); padding: 10px 20px; border-radius: 25px; cursor: pointer; margin: 5px; font-weight: bold; }
-
-        /* MEMORY SLOTS */
-        .mem-slot { display: flex; gap: 5px; margin-top: 5px; }
-        .mem-text { flex: 1; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; overflow: hidden; white-space: nowrap; }
-        .mem-btn { padding: 5px; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 5px; cursor: pointer; font-size: 0.7rem; }
+        .input-box { 
+            width: 100%; background: #000; border: 2px solid #334155; border-radius: 15px; 
+            padding: 20px; font-size: 1.5rem; color: #fff; outline: none; box-sizing: border-box;
+            text-align: center; margin-bottom: 20px;
+        }
+        .lecture-panel { 
+            background: var(--panel-bg); border-radius: 20px; padding: 30px; 
+            border: 1px solid rgba(255,255,255,0.1); text-align: center; margin-bottom: 20px;
+        }
+        #answer { font-size: 2.2rem; font-weight: bold; margin-bottom: 25px; min-height: 1.2em; word-break: break-all; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+        .btn-action { 
+            background: transparent; border: 1px solid var(--solve); color: var(--solve); 
+            padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 0.8rem;
+        }
+        .history-section {
+            background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .history-title { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; display: block; letter-spacing: 1px; }
+        .history-item { 
+            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; 
+            margin-bottom: 8px; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .history-item:active { background: rgba(255,255,255,0.1); }
+        .var-tag { font-size: 0.6rem; background: var(--solve); color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 8px; }
     </style>
 </head>
 <body>
 
-    <button class="toggle-btn" onclick="document.getElementById('sidebar').classList.toggle('hidden')">☰</button>
+    <div class="container">
+        <div class="toolbar">
+            <button id="btn-solve" class="mode-btn active" onclick="setMode('solve')">SOLVER</button>
+            <button id="btn-base" class="mode-btn" onclick="setMode('base')">SIMPLIFY</button>
+        </div>
 
-    <div class="sidebar" id="sidebar">
-        <div class="section-header">Brightness</div>
-        <input type="range" min="0.2" max="1" step="0.1" value="1" oninput="document.documentElement.style.setProperty('--brightness', this.value)" style="width:100%">
-        
-        <div class="section-header">Themes</div>
-        <button class="mem-btn" onclick="setTheme('#1a472a', '#062d14')">Chalkboard</button>
-        <button class="mem-btn" onclick="setTheme('#0f172a', '#1e1b4b')">Midnight</button>
+        <input type="text" id="mathInput" class="input-box" placeholder="Equation (e.g. 2x+5=11)" autofocus autocomplete="off">
 
-        <div class="section-header">Memory Slots</div>
-        <div id="memList"></div>
-    </div>
-
-    <div class="main-content">
-        <div class="container">
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <button id="b-solve" class="mode-btn active" onclick="setMode('solve')">SOLVE</button>
-                <button id="b-base" class="mode-btn" onclick="setMode('base')">BASE</button>
+        <div class="lecture-panel">
+            <div id="answer">Ready</div>
+            <div class="btn-group">
+                <button class="btn-action" onclick="saveToHistory()">Save to History</button>
+                <button class="btn-action" style="border-color:#3b82f6; color:#3b82f6;" onclick="copyResult()">Copy Answer</button>
             </div>
-            
-            <input type="text" id="mathInput" class="input-box" placeholder="Equation..." autofocus>
-            
-            <div class="lecture-panel">
-                <div id="answer">Ready</div>
-                <button class="btn-action" onclick="copyAns()">Copy</button>
-                <button class="btn-action" style="border-color:var(--base); color:var(--base)" onclick="simplifyAns()">Simplify</button>
-            </div>
+        </div>
+
+        <div class="history-section">
+            <span class="history-title">Recent Work</span>
+            <div id="historyList"></div>
+            <button class="btn-action" style="font-size: 0.65rem; border: none; color: #ef4444; width:100%; margin-top:10px;" onclick="clearHistory()">Clear History Data</button>
         </div>
     </div>
 
@@ -91,51 +88,78 @@
         let mode = 'solve';
         const input = document.getElementById('mathInput');
         const display = document.getElementById('answer');
-        let slots = JSON.parse(localStorage.getItem('mathSlots') || '["","","","",""]');
+        let history = JSON.parse(localStorage.getItem('mathHistory') || '[]');
 
-        function setMode(m) { 
-            mode = m; 
-            document.getElementById('b-solve').classList.toggle('active', m === 'solve');
-            document.getElementById('b-base').classList.toggle('active', m === 'base');
-            calc();
+        function setMode(m) {
+            mode = m;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + m).classList.add('active');
+            calculate();
         }
 
-        function calc() {
+        function calculate() {
             let val = input.value.trim();
-            if(!val) { display.innerText = "Ready"; return; }
+            if (!val) { display.innerText = "Ready"; return; }
             try {
-                let clean = val.replace(/(\d)([a-zA-Z\(])/g, '$1*$2');
-                if(mode === 'solve') {
-                    let v = val.match(/[a-zA-Z]/) ? val.match(/[a-zA-Z]/)[0] : 'x';
+                let clean = val.replace(/(\d)([a-zA-Z\(])/g, '$1*$2'); 
+                if (mode === 'solve') {
+                    let variable = val.match(/[a-zA-Z]/) ? val.match(/[a-zA-Z]/)[0] : 'x';
                     let eq = clean.includes('=') ? `(${clean.split('=')[0]}) - (${clean.split('=')[1]})` : clean;
-                    display.innerText = `${v.toUpperCase()} = ` + Algebrite.run(`roots(${eq}, ${v})`).toString().replace(/[\[\]]/g, "");
+                    let sol = Algebrite.run(`roots(${eq}, ${variable})`).toString().replace(/[\[\]]/g, "");
+                    display.innerText = `${variable.toUpperCase()} = ${sol}`;
                 } else {
                     display.innerText = Algebrite.run(`simplify(${clean})`).toString();
                 }
-            } catch(e) { display.innerText = "..."; }
+            } catch (err) { display.innerText = "..."; }
         }
 
-        function simplifyAns() {
-            try {
-                let cur = display.innerText.includes('=') ? display.innerText.split('=')[1] : display.innerText;
-                display.innerText = (display.innerText.includes('=') ? display.innerText.split('=')[0] + "= " : "") + Algebrite.run(`simplify(${cur})`).toString();
-            } catch(e) {}
+        function saveToHistory() {
+            let eq = input.value;
+            let ans = display.innerText;
+            if (!eq || ans === "Ready" || ans === "...") return;
+            
+            // Avoid duplicates
+            if (history.length > 0 && history[0].eq === eq) return;
+
+            history.unshift({eq, ans});
+            if (history.length > 5) history.pop();
+            localStorage.setItem('mathHistory', JSON.stringify(history));
+            renderHistory();
         }
 
-        function copyAns() { navigator.clipboard.writeText(display.innerText); alert("Copied!"); }
-        function setTheme(a, b) { document.documentElement.style.setProperty('--bg-a', a); document.documentElement.style.setProperty('--bg-b', b); }
-
-        function updateSlots() {
-            document.getElementById('memList').innerHTML = slots.map((s, i) => `
-                <div class="mem-slot">
-                    <div class="mem-text" onclick="input.value='${s}';calc();">${s || 'Empty'}</div>
-                    <button class="mem-btn" onclick="slots[${i}]=input.value;localStorage.setItem('mathSlots', JSON.stringify(slots));updateSlots();">Save</button>
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (history.length === 0) { list.innerHTML = '<p style="font-size:0.8rem; color:#475569; text-align:center;">No recent work saved</p>'; return; }
+            list.innerHTML = history.map((item, index) => `
+                <div class="history-item" onclick="loadHistory(${index})">
+                    <span style="overflow:hidden; text-overflow:ellipsis;">${item.eq}</span>
+                    <span style="color:var(--solve); font-weight:bold;">${item.ans}</span>
                 </div>
             `).join('');
         }
 
-        input.addEventListener('input', calc);
-        window.onload = updateSlots;
+        function loadHistory(index) {
+            input.value = history[index].eq;
+            calculate();
+        }
+
+        function clearHistory() {
+            if(confirm("Delete all saved equations?")) {
+                history = [];
+                localStorage.removeItem('mathHistory');
+                renderHistory();
+            }
+        }
+
+        function copyResult() {
+            navigator.clipboard.writeText(display.innerText);
+            const btn = document.querySelector('button[onclick="copyResult()"]');
+            btn.innerText = "Copied!";
+            setTimeout(() => btn.innerText = "Copy Answer", 2000);
+        }
+
+        input.addEventListener('input', calculate);
+        window.onload = renderHistory;
     </script>
 </body>
 </html>
